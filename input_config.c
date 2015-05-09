@@ -1,7 +1,7 @@
 /**
- * glide64_cache_extract, Glide64 TexCache Extraction tool for debugging
+ * gliden64_cache_extract, GLideN64 TexCache Extraction tool for debugging
  *
- * Copyright (C) 2013  Sven Eckelmann <sven@narfation.org>
+ * Copyright (C) 2013-2015  Sven Eckelmann <sven@narfation.org>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "glide64_cache_extract.h"
+#include "gliden64_cache_extract.h"
 #include <inttypes.h>
 #include <stdint.h>
 #include <stdio.h>

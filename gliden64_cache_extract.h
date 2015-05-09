@@ -1,7 +1,7 @@
 /**
- * glide64_cache_extract, Glide64 TexCache Extraction tool for debugging
+ * gliden64_cache_extract, GLideN64 TexCache Extraction tool for debugging
  *
- * Copyright (C) 2013  Sven Eckelmann <sven@narfation.org>
+ * Copyright (C) 2013-2015  Sven Eckelmann <sven@narfation.org>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,8 +17,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _GLIDE64_CACHE_EXTRACT_H_
-#define _GLIDE64_CACHE_EXTRACT_H_
+#ifndef _GLIDEN64_CACHE_EXTRACT_H_
+#define _GLIDEN64_CACHE_EXTRACT_H_
 
 #if defined(__linux__) || defined(__CYGWIN__)
 
@@ -187,7 +187,7 @@ static inline uint64_t le64toh(uint64_t little_endian_64bits)
 #define GR_TEXFMT_ARGB_CMP_DXT5      0x1AU
 #define GR_TEXFMT_GZ                 0x8000U
 
-struct glide64_file {
+struct gliden64_file {
 	void *data;
 	uint64_t checksum;
 	uint32_t width;
@@ -244,8 +244,8 @@ int parse_config(uint32_t config);
 int convert_file(void);
 int get_buffer_endian(void *buffer, size_t size, int print_error);
 #define get_item(x) get_buffer_endian(&x, sizeof(x), 1)
-int prepare_file(struct glide64_file *file);
+int prepare_file(struct gliden64_file *file);
 int write_tarblock(void *buffer, size_t size, size_t offset);
-int write_file(struct glide64_file *file);
+int write_file(struct gliden64_file *file);
 
 #endif

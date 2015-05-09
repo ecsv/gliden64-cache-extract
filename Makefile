@@ -1,8 +1,8 @@
 #!/usr/bin/make -f
 # -*- makefile -*-
 
-BINARY_NAME = glide64_cache_extract
-OBJ = glide64_cache_extract.o input_config.o input_file.o convert_file.o output_file.o
+BINARY_NAME = gliden64_cache_extract
+OBJ = gliden64_cache_extract.o input_config.o input_file.o convert_file.o output_file.o
 
 # flags and options
 CFLAGS += -pedantic -Wall -W -std=gnu99 -MD

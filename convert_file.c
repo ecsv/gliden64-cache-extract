@@ -1,7 +1,7 @@
 /**
- * glide64_cache_extract, Glide64 TexCache Extraction tool for debugging
+ * gliden64_cache_extract, GLideN64 TexCache Extraction tool for debugging
  *
- * Copyright (C) 2013  Sven Eckelmann <sven@narfation.org>
+ * Copyright (C) 2013-2015  Sven Eckelmann <sven@narfation.org>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "glide64_cache_extract.h"
+#include "gliden64_cache_extract.h"
 #include <errno.h>
 #include <inttypes.h>
 #include <stddef.h>
@@ -129,7 +129,7 @@ struct bmp_header_v5 {
 };
 #pragma pack(pop)
 
-static size_t image_content_length(const struct glide64_file *file)
+static size_t image_content_length(const struct gliden64_file *file)
 {
 #define BALIGN(x, a) (((x) + (a)) & ~(a))
 	size_t size;
@@ -170,7 +170,7 @@ static size_t image_content_length(const struct glide64_file *file)
 #undef BALIGN
 }
 
-static int resize_image_dds(struct glide64_file *file)
+static int resize_image_dds(struct gliden64_file *file)
 {
 	DDS_HEADER *header;
 	size_t header_size = 128;
@@ -316,7 +316,7 @@ static int resize_image_dds(struct glide64_file *file)
 	return 0;
 }
 
-static int resize_image_bmp(struct glide64_file *file)
+static int resize_image_bmp(struct gliden64_file *file)
 {
 	struct bmp_header *header;
 	struct bmp_header_v5 *header_v5;
@@ -420,7 +420,7 @@ static int resize_image_bmp(struct glide64_file *file)
 	return 0;
 }
 
-static int normalize_image_a8(struct glide64_file *file)
+static int normalize_image_a8(struct gliden64_file *file)
 {
 	uint32_t *buf;
 	uint8_t *data, raw;
@@ -455,7 +455,7 @@ static int normalize_image_a8(struct glide64_file *file)
 	return 0;
 }
 
-static int normalize_image_i8(struct glide64_file *file)
+static int normalize_image_i8(struct gliden64_file *file)
 {
 	uint32_t *buf;
 	uint8_t *data, raw;
@@ -490,7 +490,7 @@ static int normalize_image_i8(struct glide64_file *file)
 	return 0;
 }
 
-static int normalize_image_a4i4(struct glide64_file *file)
+static int normalize_image_a4i4(struct gliden64_file *file)
 {
 	uint32_t *buf;
 	uint8_t *data, raw;
@@ -528,13 +528,13 @@ static int normalize_image_a4i4(struct glide64_file *file)
 	return 0;
 }
 
-static int normalize_image_p8(struct glide64_file *file __attribute__((unused)))
+static int normalize_image_p8(struct gliden64_file *file __attribute__((unused)))
 {
 	fprintf(stderr, "Unsupported format GR_TEXFMT_P_8\n");
 	return -EPERM;
 }
 
-static int normalize_image_r5g6b5(struct glide64_file *file)
+static int normalize_image_r5g6b5(struct gliden64_file *file)
 {
 	uint32_t *buf;
 	uint16_t *data, raw;
@@ -574,7 +574,7 @@ static int normalize_image_r5g6b5(struct glide64_file *file)
 	return 0;
 }
 
-static int normalize_image_a1r5g5b5(struct glide64_file *file)
+static int normalize_image_a1r5g5b5(struct gliden64_file *file)
 {
 	uint32_t *buf;
 	uint16_t *data, raw;
@@ -616,7 +616,7 @@ static int normalize_image_a1r5g5b5(struct glide64_file *file)
 	return 0;
 }
 
-static int normalize_image_a4r4g4b4(struct glide64_file *file)
+static int normalize_image_a4r4g4b4(struct gliden64_file *file)
 {
 	uint32_t *buf;
 	uint16_t *data, raw;
@@ -658,7 +658,7 @@ static int normalize_image_a4r4g4b4(struct glide64_file *file)
 	return 0;
 }
 
-static int normalize_image_a8i8(struct glide64_file *file)
+static int normalize_image_a8i8(struct gliden64_file *file)
 {
 	uint32_t *buf;
 	uint16_t *data, raw;
@@ -694,7 +694,7 @@ static int normalize_image_a8i8(struct glide64_file *file)
 	return 0;
 }
 
-static int resize_image_content(struct glide64_file *file)
+static int resize_image_content(struct gliden64_file *file)
 {
 	int ret;
 
@@ -780,7 +780,7 @@ static int resize_image_content(struct glide64_file *file)
 	return 0;
 }
 
-int prepare_file(struct glide64_file *file)
+int prepare_file(struct gliden64_file *file)
 {
 	size_t expected_size;
 	void *buf;

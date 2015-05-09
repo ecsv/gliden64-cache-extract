@@ -1,7 +1,7 @@
 /**
- * glide64_cache_extract, Glide64 TexCache Extraction tool for debugging
+ * gliden64_cache_extract, GLideN64 TexCache Extraction tool for debugging
  *
- * Copyright (C) 2013  Sven Eckelmann <sven@narfation.org>
+ * Copyright (C) 2013-2015  Sven Eckelmann <sven@narfation.org>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,10 +19,10 @@
 
 /**
  * Example usage:
- * zcat MUPEN64PLUS.dat | ./glide64_cache_extract -vv -p MUPEN64PLUS > mupen64plus.tar
+ * zcat MUPEN64PLUS.htc | ./gliden64_cache_extract -vv -p MUPEN64PLUS > mupen64plus.tar
  */
 
-#include "glide64_cache_extract.h"
+#include "gliden64_cache_extract.h"
 #include <errno.h>
 #include <getopt.h>
 #include <stdlib.h>
@@ -70,7 +70,7 @@ static int convert_input(void)
 
 static void usage(int argc, char *argv[])
 {
-	const char *cmd = "glide64_cache_extract";
+	const char *cmd = "gliden64_cache_extract";
 
 	if (argc > 1)
 		cmd = argv[0];

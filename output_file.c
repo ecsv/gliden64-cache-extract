@@ -1,7 +1,7 @@
 /**
- * glide64_cache_extract, Glide64 TexCache Extraction tool for debugging
+ * gliden64_cache_extract, GLideN64 TexCache Extraction tool for debugging
  *
- * Copyright (C) 2013  Sven Eckelmann <sven@narfation.org>
+ * Copyright (C) 2013-2015  Sven Eckelmann <sven@narfation.org>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "glide64_cache_extract.h"
+#include "gliden64_cache_extract.h"
 #include <errno.h>
 #include <inttypes.h>
 #include <stddef.h>
@@ -51,7 +51,7 @@ int write_tarblock(void *buffer, size_t size, size_t offset)
 	return 0;
 }
 
-static const char *image_extension(const struct glide64_file *file)
+static const char *image_extension(const struct gliden64_file *file)
 {
 	switch (file->format) {
 	case GR_TEXFMT_ALPHA_8:
@@ -77,7 +77,7 @@ static const char *image_extension(const struct glide64_file *file)
 	}
 }
 
-int write_file(struct glide64_file *file)
+int write_file(struct gliden64_file *file)
 {
 	struct tar_header tarheader;
 	uint8_t *raw_header;
