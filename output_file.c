@@ -51,30 +51,9 @@ int write_tarblock(void *buffer, size_t size, size_t offset)
 	return 0;
 }
 
-static const char *image_extension(const struct gliden64_file *file)
+static const char *image_extension(void)
 {
-	switch (file->format) {
-	case GR_TEXFMT_ALPHA_8:
-	case GR_TEXFMT_INTENSITY_8:
-	case GR_TEXFMT_ALPHA_INTENSITY_44:
-	case GR_TEXFMT_P_8:
-	case GR_TEXFMT_RGB_565:
-	case GR_TEXFMT_ARGB_1555:
-	case GR_TEXFMT_ARGB_4444:
-	case GR_TEXFMT_ALPHA_INTENSITY_88:
-	case GR_TEXFMT_ARGB_8888:
-		return "bmp";
-	case GR_TEXFMT_ARGB_CMP_FXT1:
-		fprintf(stderr, "Unsupported format GR_TEXFMT_ARGB_CMP_FXT1\n");
-		return "";
-	case GR_TEXFMT_ARGB_CMP_DXT1:
-	case GR_TEXFMT_ARGB_CMP_DXT3:
-	case GR_TEXFMT_ARGB_CMP_DXT5:
-		return "dds";
-	default:
-		fprintf(stderr, "Unsupported format %x\n", file->format);
-		return "";
-	}
+	return "bmp";
 }
 
 int write_file(struct gliden64_file *file)
@@ -89,9 +68,9 @@ int write_file(struct gliden64_file *file)
 
 	/* TODO fix this test by identifying ci mode with palette, set fmt+size in name */
 	if ((uint32_t)(file->checksum >> 32) != 0)
-		snprintf(tarheader.name, sizeof(tarheader.name), "%s#%08"PRIX32"#%01"PRIX32"#%01"PRIX32"#%08"PRIX32"_ciByRGBA.%s", globals.prefix, (uint32_t)file->checksum, 3 , 0, (uint32_t)(file->checksum >> 32), image_extension(file));
+		snprintf(tarheader.name, sizeof(tarheader.name), "%s#%08"PRIX32"#%01"PRIX32"#%01"PRIX32"#%08"PRIX32"_ciByRGBA.%s", globals.prefix, (uint32_t)file->checksum, 3 , 0, (uint32_t)(file->checksum >> 32), image_extension());
 	else
-		snprintf(tarheader.name, sizeof(tarheader.name), "%s#%08"PRIX32"#%01"PRIX32"#%01"PRIX32"_all.%s", globals.prefix, (uint32_t)file->checksum, 3 , 0, image_extension(file));
+		snprintf(tarheader.name, sizeof(tarheader.name), "%s#%08"PRIX32"#%01"PRIX32"#%01"PRIX32"_all.%s", globals.prefix, (uint32_t)file->checksum, 3 , 0, image_extension());
 
 	tarheader.name[sizeof(tarheader.name) - 1] = '\0';
 

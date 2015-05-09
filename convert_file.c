@@ -27,49 +27,6 @@
 #include <string.h>
 #include <zlib.h>
 
-#define DDSD_CAPS		0x00000001U
-#define DDSD_HEIGHT		0x00000002U
-#define DDSD_WIDTH		0x00000004U
-#define DDSD_PITCH		0x00000008U
-#define DDSD_PIXELFORMAT	0x00001000U
-#define DDSD_LINEARSIZE		0x00080000U
-
-#define DDPF_ALPHAPIXELS	0x00000001U
-#define DDPF_FOURCC		0x00000004U
-#define DDPF_RGB		0x00000040U
-#define DDPF_LUMINANCE		0x00000040U
-
-#define DDSCAPS_TEXTURE		0x00001000U
-
-typedef struct {
-	uint32_t dwSize;
-	uint32_t dwFlags;
-	uint32_t dwFourCC;
-	uint32_t dwRGBBitCount;
-	uint32_t dwRBitMask;
-	uint32_t dwGBitMask;
-	uint32_t dwBBitMask;
-	uint32_t dwABitMask;
-} DDS_PIXELFORMAT;
-
-typedef struct {
-	uint32_t           dwMagic;
-	uint32_t           dwSize;
-	uint32_t           dwFlags;
-	uint32_t           dwHeight;
-	uint32_t           dwWidth;
-	uint32_t           dwPitchOrLinearSize;
-	uint32_t           dwDepth;
-	uint32_t           dwMipMapCount;
-	uint32_t           dwReserved1[11];
-	DDS_PIXELFORMAT    ddspf;
-	uint32_t           dwCaps;
-	uint32_t           dwCaps2;
-	uint32_t           dwCaps3;
-	uint32_t           dwCaps4;
-	uint32_t           dwReserved2;
-} DDS_HEADER;
-
 #pragma pack(push, 1)
 struct bmp_header {
 	int16_t identifier;
@@ -131,189 +88,28 @@ struct bmp_header_v5 {
 
 static size_t image_content_length(const struct gliden64_file *file)
 {
-#define BALIGN(x, a) (((x) + (a)) & ~(a))
 	size_t size;
 
 	switch (file->format & ~GR_TEXFMT_GZ) {
-	case GR_TEXFMT_ALPHA_8:
-	case GR_TEXFMT_INTENSITY_8:
-	case GR_TEXFMT_ALPHA_INTENSITY_44:
-	case GR_TEXFMT_P_8:
-		size = file->width * file->height;
-		break;
-	case GR_TEXFMT_RGB_565:
-	case GR_TEXFMT_ARGB_1555:
-	case GR_TEXFMT_ARGB_4444:
-	case GR_TEXFMT_ALPHA_INTENSITY_88:
-		size = file->width * file->height * 2;
-		break;
-	case GR_TEXFMT_ARGB_CMP_FXT1:
-		size = (BALIGN(file->width, 7U) * BALIGN(file->height, 3U)) / 2;
-		break;
-	case GR_TEXFMT_ARGB_8888:
+	case GR_RGBA8:
 		size = file->width * file->height * 4;
 		break;
-	case GR_TEXFMT_ARGB_CMP_DXT1:
-		size = BALIGN(file->width, 3U) * BALIGN(file->height, 3U);
+	case GR_RGB:
+		size = file->width * file->height * 2;
 		break;
-	case GR_TEXFMT_ARGB_CMP_DXT3:
-	case GR_TEXFMT_ARGB_CMP_DXT5:
-		size = BALIGN(file->width, 3U) * BALIGN(file->height, 3U) * 2;
+	case GR_RGBA4:
+		size = file->width * file->height * 2;
+		break;
+	case GR_RGB5_A1:
+		size = file->width * file->height * 2;
 		break;
 	default:
 		size = 0;
-		fprintf(stderr, "Unsupported format %#"PRIx16"\n", file->format);
+		fprintf(stderr, "Unsupported format %#"PRIx32"\n", file->format);
 		break;
 	}
 
 	return size;
-#undef BALIGN
-}
-
-static int resize_image_dds(struct gliden64_file *file)
-{
-	DDS_HEADER *header;
-	size_t header_size = 128;
-	void *buf;
-
-	buf = malloc(file->size + header_size);
-	if (!buf) {
-		fprintf(stderr, "Memory for DDS file couldn't be allocated\n");
-		return -ENOMEM;
-	}
-
-	header = (DDS_HEADER *)buf;
-	memset(header, 0, header_size);
-	header->dwMagic = htole32(0x20534444U);
-	header->dwSize = htole32(124);
-	header->dwFlags = htole32(DDSD_CAPS | DDSD_HEIGHT | DDSD_WIDTH | DDSD_PIXELFORMAT);
-	header->dwHeight = htole32(file->height);
-	header->dwWidth = htole32(file->width);
-	header->dwMipMapCount = htole32(1);
-	header->dwCaps = htole32(DDSCAPS_TEXTURE);
-
-	header->ddspf.dwSize = htole32(32);
-	switch (file->format) {
-	case GR_TEXFMT_ALPHA_8:
-		header->dwFlags |= DDSD_PITCH;
-		header->dwPitchOrLinearSize = htole32(file->width);
-		header->ddspf.dwFlags = htole32(DDPF_ALPHAPIXELS);
-		header->ddspf.dwRGBBitCount = htole32(8);
-		header->ddspf.dwABitMask = htole32(0xffU);
-		break;
-	case GR_TEXFMT_INTENSITY_8:
-		header->dwFlags |= DDSD_PITCH;
-		header->dwPitchOrLinearSize = htole32(file->width);
-		header->ddspf.dwFlags = htole32(DDPF_LUMINANCE);
-		header->ddspf.dwRGBBitCount = htole32(8);
-		header->ddspf.dwRBitMask = htole32(0xffU);
-		break;
-	case GR_TEXFMT_ALPHA_INTENSITY_44:
-		header->dwFlags |= DDSD_PITCH;
-		header->dwPitchOrLinearSize = htole32(file->width);
-		header->ddspf.dwFlags = htole32(DDPF_ALPHAPIXELS | DDPF_LUMINANCE);
-		header->ddspf.dwRGBBitCount = htole32(8);
-		header->ddspf.dwRBitMask = htole32(0x0fU);
-		header->ddspf.dwABitMask = htole32(0xf0U);
-		break;
-	case GR_TEXFMT_P_8:
-		fprintf(stderr, "Unsupported format GR_TEXFMT_P_8\n");
-		free(buf);
-		return -EPERM;
-	case GR_TEXFMT_RGB_565:
-		header->dwFlags |= DDSD_PITCH;
-		header->dwPitchOrLinearSize = htole32(file->width * 2);
-		header->ddspf.dwFlags = htole32(DDPF_RGB);
-		header->ddspf.dwRGBBitCount = htole32(16);
-		header->ddspf.dwRBitMask = htole32(0xf800U);
-		header->ddspf.dwGBitMask = htole32(0x07e0U);
-		header->ddspf.dwBBitMask = htole32(0x001fU);
-		break;
-	case GR_TEXFMT_ARGB_1555:
-		header->dwFlags |= DDSD_PITCH;
-		header->dwPitchOrLinearSize = htole32(file->width * 2);
-		header->ddspf.dwFlags = htole32(DDPF_ALPHAPIXELS | DDPF_RGB);
-		header->ddspf.dwRGBBitCount = htole32(16);
-		header->ddspf.dwRBitMask = htole32(0x7c00U);
-		header->ddspf.dwGBitMask = htole32(0x03e0U);
-		header->ddspf.dwBBitMask = htole32(0x001fU);
-		header->ddspf.dwABitMask = htole32(0x8000U);
-		break;
-	case GR_TEXFMT_ARGB_4444:
-		header->dwFlags |= DDSD_PITCH;
-		header->dwPitchOrLinearSize = htole32(file->width * 2);
-		header->ddspf.dwFlags = htole32(DDPF_ALPHAPIXELS | DDPF_RGB);
-		header->ddspf.dwRGBBitCount = htole32(16);
-		header->ddspf.dwRBitMask = htole32(0x7c00U);
-		header->ddspf.dwGBitMask = htole32(0x03e0U);
-		header->ddspf.dwBBitMask = htole32(0x001fU);
-		header->ddspf.dwABitMask = htole32(0x8000U);
-		break;
-	case GR_TEXFMT_ALPHA_INTENSITY_88:
-		header->dwFlags |= DDSD_PITCH;
-		header->dwPitchOrLinearSize = htole32(file->width * 2);
-		header->ddspf.dwFlags = htole32(DDPF_ALPHAPIXELS | DDPF_LUMINANCE);
-		header->ddspf.dwRGBBitCount = htole32(16);
-		header->ddspf.dwRBitMask = htole32(0x00ffU);
-		header->ddspf.dwABitMask = htole32(0xff00U);
-		break;
-	case GR_TEXFMT_ARGB_CMP_FXT1:
-		fprintf(stderr, "Unsupported format GR_TEXFMT_ARGB_CMP_FXT1\n");
-		free(buf);
-		return -EPERM;
-	case GR_TEXFMT_ARGB_8888:
-		header->dwFlags |= DDSD_PITCH;
-		header->dwPitchOrLinearSize = htole32(file->width * 4);
-		header->ddspf.dwFlags = htole32(DDPF_ALPHAPIXELS | DDPF_RGB);
-		header->ddspf.dwFourCC = htole32(0);
-		header->ddspf.dwRGBBitCount = htole32(32);
-		header->ddspf.dwRBitMask = htole32(0x00ff0000U);
-		header->ddspf.dwGBitMask = htole32(0x0000ff00U);
-		header->ddspf.dwBBitMask = htole32(0x000000ffU);
-		header->ddspf.dwABitMask = htole32(0xff000000U);
-		break;
-	case GR_TEXFMT_ARGB_CMP_DXT1:
-		header->dwFlags |= DDSD_LINEARSIZE;
-		header->dwPitchOrLinearSize = htole32(file->size);
-		header->ddspf.dwFlags = htole32(DDPF_FOURCC);
-		header->ddspf.dwFourCC = htole32(0x31545844U);
-		header->ddspf.dwRGBBitCount = htole32(24);
-		header->ddspf.dwRBitMask = htole32(0x00ff0000U);
-		header->ddspf.dwGBitMask = htole32(0x0000ff00U);
-		header->ddspf.dwBBitMask = htole32(0x000000ffU);
-		break;
-	case GR_TEXFMT_ARGB_CMP_DXT3:
-		header->dwFlags |= DDSD_LINEARSIZE;
-		header->dwPitchOrLinearSize = htole32(file->size);
-		header->ddspf.dwFlags = htole32(DDPF_FOURCC);
-		header->ddspf.dwFourCC = htole32(0x33545844U);
-		header->ddspf.dwRGBBitCount = htole32(24);
-		header->ddspf.dwRBitMask = htole32(0x00ff0000U);
-		header->ddspf.dwGBitMask = htole32(0x0000ff00U);
-		header->ddspf.dwBBitMask = htole32(0x000000ffU);
-		break;
-	case GR_TEXFMT_ARGB_CMP_DXT5:
-		header->dwFlags |= DDSD_LINEARSIZE;
-		header->dwPitchOrLinearSize = htole32(file->size);
-		header->ddspf.dwFlags = htole32(DDPF_FOURCC);
-		header->ddspf.dwFourCC = htole32(0x35545844U);
-		header->ddspf.dwRGBBitCount = htole32(24);
-		header->ddspf.dwRBitMask = htole32(0x00ff0000U);
-		header->ddspf.dwGBitMask = htole32(0x0000ff00U);
-		header->ddspf.dwBBitMask = htole32(0x000000ffU);
-		break;
-	default:
-		fprintf(stderr, "Unsupported format %x\n", file->format);
-		free(buf);
-		return -EPERM;
-	}
-
-	memcpy((uint8_t *)buf + header_size, file->data, file->size);
-	free(file->data);
-	file->data = buf;
-	file->size += header_size;
-
-	return 0;
 }
 
 static int resize_image_bmp(struct gliden64_file *file)
@@ -326,7 +122,7 @@ static int resize_image_bmp(struct gliden64_file *file)
 	size_t line_size = file->width * 4;
 	uint32_t i;
 
-	if (file->format != GR_TEXFMT_ARGB_8888) {
+	if (file->format != GR_BGRA) {
 		fprintf(stderr, "Unsupported texture format %#x for bmp export\n", file->format);
 		return -EPERM;
 	}
@@ -420,120 +216,6 @@ static int resize_image_bmp(struct gliden64_file *file)
 	return 0;
 }
 
-static int normalize_image_a8(struct gliden64_file *file)
-{
-	uint32_t *buf;
-	uint8_t *data, raw;
-	size_t newsize;
-	size_t pixels, pos;
-	uint32_t p, a;
-
-	pixels = file->width * file->height;
-	newsize = pixels * 4;
-	if (newsize > UINT32_MAX)
-		return -EINVAL;
-
-	buf = malloc(newsize);
-	if (!buf) {
-		fprintf(stderr, "Memory for A8 image content couldn't be allocated\n");
-		return -ENOMEM;
-	}
-
-	data = file->data;
-	for (pos = 0; pos < pixels; pos++) {
-		raw = data[pos];
-		a = raw;
-		p = (a << 24) | (a << 16) | (a << 8) | a;
-		buf[pos] = htole32(p);
-	}
-
-	free(file->data);
-	file->data = (uint8_t *)buf;
-	file->size = (uint32_t)newsize;
-	file->format = GR_TEXFMT_ARGB_8888;
-
-	return 0;
-}
-
-static int normalize_image_i8(struct gliden64_file *file)
-{
-	uint32_t *buf;
-	uint8_t *data, raw;
-	size_t newsize;
-	size_t pixels, pos;
-	uint32_t p, i;
-
-	pixels = file->width * file->height;
-	newsize = pixels * 4;
-	if (newsize > UINT32_MAX)
-		return -EINVAL;
-
-	buf = malloc(newsize);
-	if (!buf) {
-		fprintf(stderr, "Memory for I8 image content couldn't be allocated\n");
-		return -ENOMEM;
-	}
-
-	data = file->data;
-	for (pos = 0; pos < pixels; pos++) {
-		raw = data[pos];
-		i = raw;
-		p = (i << 24) | (i << 16) | (i << 8) | i;
-		buf[pos] = htole32(p);
-	}
-
-	free(file->data);
-	file->data = (uint8_t *)buf;
-	file->size = (uint32_t)newsize;
-	file->format = GR_TEXFMT_ARGB_8888;
-
-	return 0;
-}
-
-static int normalize_image_a4i4(struct gliden64_file *file)
-{
-	uint32_t *buf;
-	uint8_t *data, raw;
-	size_t newsize;
-	size_t pixels, pos;
-	uint32_t p, a, i;
-
-	pixels = file->width * file->height;
-	newsize = pixels * 4;
-	if (newsize > UINT32_MAX)
-		return -EINVAL;
-
-	buf = malloc(newsize);
-	if (!buf) {
-		fprintf(stderr, "Memory for A4I4 image content couldn't be allocated\n");
-		return -ENOMEM;
-	}
-
-	data = file->data;
-	for (pos = 0; pos < pixels; pos++) {
-		raw = data[pos];
-		i = (raw & 0x0fU) << 4;
-		i |= i >> 4;
-		a = (raw & 0xf0U);
-		a |= a >> 4;
-		p = (a << 24) | (i << 16) | (i << 8) | i;
-		buf[pos] = htole32(p);
-	}
-
-	free(file->data);
-	file->data = (uint8_t *)buf;
-	file->size = (uint32_t)newsize;
-	file->format = GR_TEXFMT_ARGB_8888;
-
-	return 0;
-}
-
-static int normalize_image_p8(struct gliden64_file *file __attribute__((unused)))
-{
-	fprintf(stderr, "Unsupported format GR_TEXFMT_P_8\n");
-	return -EPERM;
-}
-
 static int normalize_image_r5g6b5(struct gliden64_file *file)
 {
 	uint32_t *buf;
@@ -569,12 +251,12 @@ static int normalize_image_r5g6b5(struct gliden64_file *file)
 	free(file->data);
 	file->data = (uint8_t *)buf;
 	file->size = (uint32_t)newsize;
-	file->format = GR_TEXFMT_ARGB_8888;
+	file->format = GR_BGRA;
 
 	return 0;
 }
 
-static int normalize_image_a1r5g5b5(struct gliden64_file *file)
+static int normalize_image_r5g5b5a1(struct gliden64_file *file)
 {
 	uint32_t *buf;
 	uint16_t *data, raw;
@@ -589,21 +271,21 @@ static int normalize_image_a1r5g5b5(struct gliden64_file *file)
 
 	buf = malloc(newsize);
 	if (!buf) {
-		fprintf(stderr, "Memory for A1R5G5B5 image content couldn't be allocated\n");
+		fprintf(stderr, "Memory for R5G5B5A1 image content couldn't be allocated\n");
 		return -ENOMEM;
 	}
 
 	data = (uint16_t *)file->data;
 	for (pos = 0; pos < pixels; pos++) {
 		raw = le16toh(data[pos]);
-		a = (raw & 0x8000U) >> 15;
-		a *= 0xffU;
-		r = (raw & 0x7c00U) >> 7;
+		r = (raw & 0xf800U) >> 8;
 		r |= r >> 5;
-		g = (raw & 0x03e0U) >> 2;
+		g = (raw & 0x07c0U) >> 3;
 		g |= g >> 5;
-		b = (raw & 0x001fU) << 3;
+		b = (raw & 0x003eU) << 2;
 		b |= b >> 5;
+		a = (raw & 0x0001U);
+		a *= 0xffU;
 		p = (a << 24) | (r << 16) | (g << 8) | b;
 		buf[pos] = htole32(p);
 	}
@@ -611,12 +293,12 @@ static int normalize_image_a1r5g5b5(struct gliden64_file *file)
 	free(file->data);
 	file->data = (uint8_t *)buf;
 	file->size = (uint32_t)newsize;
-	file->format = GR_TEXFMT_ARGB_8888;
+	file->format = GR_BGRA;
 
 	return 0;
 }
 
-static int normalize_image_a4r4g4b4(struct gliden64_file *file)
+static int normalize_image_r4g4b4a4(struct gliden64_file *file)
 {
 	uint32_t *buf;
 	uint16_t *data, raw;
@@ -631,21 +313,21 @@ static int normalize_image_a4r4g4b4(struct gliden64_file *file)
 
 	buf = malloc(newsize);
 	if (!buf) {
-		fprintf(stderr, "Memory for A4R4G4B4 image content couldn't be allocated\n");
+		fprintf(stderr, "Memory for R4G4B4A4 image content couldn't be allocated\n");
 		return -ENOMEM;
 	}
 
 	data = (uint16_t *)file->data;
 	for (pos = 0; pos < pixels; pos++) {
 		raw = le16toh(data[pos]);
-		a = (raw & 0xf000U) >> 4;
-		a |= a >> 4;
-		r = (raw & 0x0f00U) >> 4;
+		r = (raw & 0xf000U) >> 4;
 		r |= r >> 4;
-		g = (raw & 0x00f0U);
+		g = (raw & 0x0f00U) >> 4;
 		g |= g >> 4;
-		b = (raw & 0x000fU) << 4;
+		b = (raw & 0x00f0U);
 		b |= b >> 4;
+		a = (raw & 0x000fU) << 4;
+		a |= a >> 4;
 		p = (a << 24) | (r << 16) | (g << 8) | b;
 		buf[pos] = htole32(p);
 	}
@@ -653,43 +335,31 @@ static int normalize_image_a4r4g4b4(struct gliden64_file *file)
 	free(file->data);
 	file->data = (uint8_t *)buf;
 	file->size = (uint32_t)newsize;
-	file->format = GR_TEXFMT_ARGB_8888;
+	file->format = GR_BGRA;
 
 	return 0;
 }
 
-static int normalize_image_a8i8(struct gliden64_file *file)
+static int normalize_image_r8g8b8a8(struct gliden64_file *file)
 {
-	uint32_t *buf;
-	uint16_t *data, raw;
-	size_t newsize;
+	uint32_t *data, raw;
 	size_t pixels, pos;
-	uint32_t p, a, i;
+	uint32_t p, a, r, g, b;
 
 	pixels = file->width * file->height;
-	newsize = pixels * 4;
-	if (newsize > UINT32_MAX)
-		return -EINVAL;
 
-	buf = malloc(newsize);
-	if (!buf) {
-		fprintf(stderr, "Memory for A4R4G4B4 image content couldn't be allocated\n");
-		return -ENOMEM;
-	}
-
-	data = (uint16_t *)file->data;
+	data = (uint32_t *)file->data;
 	for (pos = 0; pos < pixels; pos++) {
-		raw = le16toh(data[pos]);
-		a = (raw & 0xff00U) >> 8;
-		i = (raw & 0x00ffU);
-		p = (a << 24) | (i << 16) | (i << 8) | i;
-		buf[pos] = htole32(p);
+		raw = le32toh(data[pos]);
+		a = (raw & 0xff000000U) >> 24;
+		b = (raw & 0x00ff0000U) >> 16;
+		g = (raw & 0x0000ff00U) >>  8;
+		r = (raw & 0x000000ffU) >>  0;
+		p = (a << 24) | (r << 16) | (g << 8) | b;
+		data[pos] = htole32(p);
 	}
 
-	free(file->data);
-	file->data = (uint8_t *)buf;
-	file->size = (uint32_t)newsize;
-	file->format = GR_TEXFMT_ARGB_8888;
+	file->format = GR_BGRA;
 
 	return 0;
 }
@@ -699,79 +369,38 @@ static int resize_image_content(struct gliden64_file *file)
 	int ret;
 
 	switch (file->format) {
-	case GR_TEXFMT_ALPHA_8:
-		ret = normalize_image_a8(file);
-		if (ret < 0) {
-			fprintf(stderr, "Error during conversion from ALPHA_8 to ARGB_8888\n");
-			return ret;
-		}
-
-		return resize_image_bmp(file);
-	case GR_TEXFMT_INTENSITY_8:
-		ret = normalize_image_i8(file);
-		if (ret < 0) {
-			fprintf(stderr, "Error during conversion from INTENSITY_8 to ARGB_8888\n");
-			return ret;
-		}
-
-		return resize_image_bmp(file);
-	case GR_TEXFMT_ALPHA_INTENSITY_44:
-		ret = normalize_image_a4i4(file);
-		if (ret < 0) {
-			fprintf(stderr, "Error during conversion from INTENSITY_44 to ARGB_8888\n");
-			return ret;
-		}
-
-		return resize_image_bmp(file);
-	case GR_TEXFMT_P_8:
-		ret = normalize_image_p8(file);
-		if (ret < 0) {
-			fprintf(stderr, "Error during conversion from P_8 to ARGB_8888\n");
-			return ret;
-		}
-
-		return resize_image_bmp(file);
-	case GR_TEXFMT_RGB_565:
+	case GR_RGB:
 		ret = normalize_image_r5g6b5(file);
 		if (ret < 0) {
-			fprintf(stderr, "Error during conversion from RGB_565 to ARGB_8888\n");
+			fprintf(stderr, "Error during conversion from RGB_565 to BGRA_8888\n");
 			return ret;
 		}
 
 		return resize_image_bmp(file);
-	case GR_TEXFMT_ARGB_1555:
-		ret = normalize_image_a1r5g5b5(file);
+	case GR_RGB5_A1:
+		ret = normalize_image_r5g5b5a1(file);
 		if (ret < 0) {
-			fprintf(stderr, "Error during conversion from ARGB_1555 to ARGB_8888\n");
+			fprintf(stderr, "Error during conversion from RGBA_5551 to BGRA_8888\n");
 			return ret;
 		}
 
 		return resize_image_bmp(file);
-	case GR_TEXFMT_ARGB_4444:
-		ret = normalize_image_a4r4g4b4(file);
+	case GR_RGBA4:
+		ret = normalize_image_r4g4b4a4(file);
 		if (ret < 0) {
-			fprintf(stderr, "Error during conversion from ARGB_4444 to ARGB_8888\n");
+			fprintf(stderr, "Error during conversion from RGBA_4444 to BGRA_8888\n");
 			return ret;
 		}
 
 		return resize_image_bmp(file);
-	case GR_TEXFMT_ALPHA_INTENSITY_88:
-		ret = normalize_image_a8i8(file);
+	case GR_RGBA8:
+		ret = normalize_image_r8g8b8a8(file);
 		if (ret < 0) {
-			fprintf(stderr, "Error during conversion from ALPHA_INTENSITY_88 to ARGB_8888\n");
+			fprintf(stderr, "Error during conversion from RGBA_8888 to BGRA_8888\n");
 			return ret;
 		}
 
 		return resize_image_bmp(file);
-	case GR_TEXFMT_ARGB_CMP_FXT1:
-		fprintf(stderr, "Unsupported format GR_TEXFMT_ARGB_CMP_FXT1\n");
-		return -EPERM;
-	case GR_TEXFMT_ARGB_8888:
-		return resize_image_bmp(file);
-	case GR_TEXFMT_ARGB_CMP_DXT1:
-	case GR_TEXFMT_ARGB_CMP_DXT3:
-	case GR_TEXFMT_ARGB_CMP_DXT5:
-		return resize_image_dds(file);
 	default:
 		fprintf(stderr, "Unsupported format %x\n", file->format);
 		return -EPERM;

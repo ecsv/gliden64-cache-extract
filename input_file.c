@@ -101,39 +101,15 @@ int convert_file(void)
 		return ret;
 	}
 
-	ret = get_item(file.smallLodLog2);
+	ret = get_item(file.texture_format);
 	if (ret < 0) {
-		fprintf(stderr, "Failed to read file smallLodLog2\n");
+		fprintf(stderr, "Failed to read file texture_format\n");
 		return ret;
 	}
 
-	ret = get_item(file.largeLodLog2);
+	ret = get_item(file.pixel_type);
 	if (ret < 0) {
-		fprintf(stderr, "Failed to read file largeLodLog2\n");
-		return ret;
-	}
-
-	ret = get_item(file.aspectRatioLog2);
-	if (ret < 0) {
-		fprintf(stderr, "Failed to read file aspectRatioLog2\n");
-		return ret;
-	}
-
-	ret = get_item(file.tiles);
-	if (ret < 0) {
-		fprintf(stderr, "Failed to read file tiles\n");
-		return ret;
-	}
-
-	ret = get_item(file.untiled_width);
-	if (ret < 0) {
-		fprintf(stderr, "Failed to read file untiled_width\n");
-		return ret;
-	}
-
-	ret = get_item(file.untiled_height);
-	if (ret < 0) {
-		fprintf(stderr, "Failed to read file untiled_height\n");
+		fprintf(stderr, "Failed to read file pixel_type\n");
 		return ret;
 	}
 
@@ -157,13 +133,9 @@ int convert_file(void)
 		fprintf(stderr, "\tchecksum: 0x%016"PRIX64"\n", file.checksum);
 		fprintf(stderr, "\twidth: %"PRIu32"\n", file.width);
 		fprintf(stderr, "\theight: %"PRIu32"\n", file.height);
-		fprintf(stderr, "\tformat: %#"PRIx16"\n", file.format);
-		fprintf(stderr, "\tsmallLodLog2: %"PRIu32"\n", file.smallLodLog2);
-		fprintf(stderr, "\tlargeLodLog2: %"PRIu32"\n", file.largeLodLog2);
-		fprintf(stderr, "\taspectRatioLog2: %"PRIu32"\n", file.aspectRatioLog2);
-		fprintf(stderr, "\ttiles: %"PRIu32"\n", file.tiles);
-		fprintf(stderr, "\tuntiled_width: %"PRIu32"\n", file.untiled_width);
-		fprintf(stderr, "\tuntiled_height: %"PRIu32"\n", file.untiled_height);
+		fprintf(stderr, "\tformat: %#"PRIx32"\n", file.format);
+		fprintf(stderr, "\ttexture_format: %#"PRIx16"\n", file.texture_format);
+		fprintf(stderr, "\tpixel_type: %#"PRIx16"\n", file.pixel_type);
 		fprintf(stderr, "\tis_hires_tex: %"PRIu8"\n", file.is_hires_tex);
 		fprintf(stderr, "\tsize: %"PRIu32"\n", file.size);
 		fprintf(stderr, "\n");

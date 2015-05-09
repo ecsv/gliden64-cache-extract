@@ -25,8 +25,8 @@
 int parse_config(uint32_t config)
 {
 	uint32_t remaining_bits;
-	const uint32_t highres_bits = HIRESTEXTURES_MASK|COMPRESS_HIRESTEX|COMPRESSION_MASK|TILE_HIRESTEX|FORCE16BPP_HIRESTEX|GZ_HIRESTEXCACHE|LET_TEXARTISTS_FLY;
-	const uint32_t tex_bits = FILTER_MASK|ENHANCEMENT_MASK|COMPRESS_TEX|COMPRESSION_MASK|FORCE16BPP_TEX|GZ_TEXCACHE;
+	const uint32_t highres_bits = HIRESTEXTURES_MASK|TILE_HIRESTEX|FORCE16BPP_HIRESTEX|GZ_HIRESTEXCACHE|LET_TEXARTISTS_FLY;
+	const uint32_t tex_bits = FILTER_MASK|ENHANCEMENT_MASK|FORCE16BPP_TEX|GZ_TEXCACHE;
 	uint32_t testbits;
 
 	switch (globals.type) {
@@ -54,34 +54,20 @@ int parse_config(uint32_t config)
 				conf_str = "1";
 			else
 				conf_str = "set to an unsupported format";
-			fprintf(stderr, "\tghq_hirs: %s\n", conf_str);
-		}
-
-		if ((testbits & COMPRESS_HIRESTEX) == COMPRESS_HIRESTEX)
-			fprintf(stderr, "\tghq_hirs_cmpr: %s\n", (config & COMPRESS_HIRESTEX) ? "True" : "False");
-
-		if ((testbits & COMPRESSION_MASK) == COMPRESSION_MASK && (config & COMPRESS_HIRESTEX)) {
-			if ((config & COMPRESSION_MASK) == FXT1_COMPRESSION)
-				conf_str = "1";
-			else if ((config & COMPRESSION_MASK) == S3TC_COMPRESSION)
-				conf_str = "0";
-			else
-				conf_str = "set to an unsupported format";
-
-			fprintf(stderr, "ghq_cmpr: %s\n", conf_str);
+			fprintf(stderr, "\ttxHiresEnable: %s\n", conf_str);
 		}
 
 		if ((testbits & TILE_HIRESTEX) == TILE_HIRESTEX)
 			fprintf(stderr, "\tghq_hirs_tile: %s\n", (config & TILE_HIRESTEX) ? "True" : "False");
 
 		if ((testbits & FORCE16BPP_HIRESTEX) == FORCE16BPP_HIRESTEX)
-			fprintf(stderr, "\tghq_hirs_f16bpp: %s\n", (config & FORCE16BPP_HIRESTEX) ? "True" : "False");
+			fprintf(stderr, "\ttxForce16bpp: %s\n", (config & FORCE16BPP_HIRESTEX) ? "True" : "False");
 
 		if ((testbits & GZ_HIRESTEXCACHE) == GZ_HIRESTEXCACHE)
-			fprintf(stderr, "\tghq_hirs_gz: %s\n", (config & GZ_HIRESTEXCACHE) ? "True" : "False");
+			fprintf(stderr, "\ttxCacheCompression: %s\n", (config & GZ_HIRESTEXCACHE) ? "True" : "False");
 
 		if ((testbits & LET_TEXARTISTS_FLY) == LET_TEXARTISTS_FLY)
-			fprintf(stderr, "\tghq_hirs_let_texartists_fly: %s\n", (config & LET_TEXARTISTS_FLY) ? "True" : "False");
+			fprintf(stderr, "\ttxHiresFullAlphaChannel: %s\n", (config & LET_TEXARTISTS_FLY) ? "True" : "False");
 
 		if ((testbits & FILTER_MASK) == FILTER_MASK) {
 			if ((config & FILTER_MASK) == NO_FILTER)
@@ -100,7 +86,7 @@ int parse_config(uint32_t config)
 				conf_str = "6";
 			else
 				conf_str = "set to an unsupported format";
-			fprintf(stderr, "\tghq_fltr: %s\n", conf_str);
+			fprintf(stderr, "\ttxFilterMode: %s\n", conf_str);
 		}
 
 		if ((testbits & ENHANCEMENT_MASK) == ENHANCEMENT_MASK) {
@@ -120,19 +106,24 @@ int parse_config(uint32_t config)
 				conf_str = "7";
 			else if ((config & ENHANCEMENT_MASK) == HQ4X_ENHANCEMENT)
 				conf_str = "8";
+			else if ((config & ENHANCEMENT_MASK) == BRZ2X_ENHANCEMENT)
+				conf_str = "9";
+			else if ((config & ENHANCEMENT_MASK) == BRZ3X_ENHANCEMENT)
+				conf_str = "10";
+			else if ((config & ENHANCEMENT_MASK) == BRZ4X_ENHANCEMENT)
+				conf_str = "11";
+			else if ((config & ENHANCEMENT_MASK) == BRZ5X_ENHANCEMENT)
+				conf_str = "12";
 			else
 				conf_str = "set to an unsupported format";
-			fprintf(stderr, "\tghq_enht: %s\n", conf_str);
+			fprintf(stderr, "\ttxEnhancementMode: %s\n", conf_str);
 		}
 
-		if ((testbits & COMPRESS_TEX) == COMPRESS_TEX)
-			fprintf(stderr, "\tghq_enht_cmpr: %s\n", (config & COMPRESS_TEX) ? "True" : "False");
-
 		if ((testbits & FORCE16BPP_TEX) == FORCE16BPP_TEX)
-			fprintf(stderr, "\tghq_enht_f16bpp: %s\n", (config & FORCE16BPP_TEX) ? "True" : "False");
+			fprintf(stderr, "\ttxForce16bpp: %s\n", (config & FORCE16BPP_TEX) ? "True" : "False");
 
 		if ((testbits & GZ_TEXCACHE) == GZ_TEXCACHE)
-			fprintf(stderr, "\tghq_enht_gz: %s\n", (config & GZ_TEXCACHE) ? "True" : "False");
+			fprintf(stderr, "\ttxCacheCompression: %s\n", (config & GZ_TEXCACHE) ? "True" : "False");
 
 		fprintf(stderr, "\n");
 	}

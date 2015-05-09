@@ -125,13 +125,7 @@ static inline uint64_t le64toh(uint64_t little_endian_64bits)
 
 #include <stddef.h>
 #include <stdint.h>
-#include <stdio.h> 
-
-#define COMPRESSION_MASK    0x0000f000U
-#define NO_COMPRESSION      0x00000000U
-#define FXT1_COMPRESSION    0x00001000U
-#define NCC_COMPRESSION     0x00002000U
-#define S3TC_COMPRESSION    0x00003000U
+#include <stdio.h>
 
 #define HIRESTEXTURES_MASK  0x000f0000U
 #define NO_HIRESTEXTURES    0x00000000U
@@ -139,7 +133,6 @@ static inline uint64_t le64toh(uint64_t little_endian_64bits)
 #define RICE_HIRESTEXTURES  0x00020000U
 #define JABO_HIRESTEXTURES  0x00030000U
 
-#define COMPRESS_HIRESTEX   0x00200000U
 #define TILE_HIRESTEX       0x04000000U
 #define FORCE16BPP_HIRESTEX 0x10000000U
 #define GZ_HIRESTEXCACHE    0x00800000U
@@ -167,40 +160,31 @@ static inline uint64_t le64toh(uint64_t little_endian_64bits)
 #define HQ4X_ENHANCEMENT    0x00000500U
 #define HQ2XS_ENHANCEMENT   0x00000600U
 #define LQ2XS_ENHANCEMENT   0x00000700U
+#define BRZ2X_ENHANCEMENT   0x00000800U
+#define BRZ3X_ENHANCEMENT   0x00000900U
+#define BRZ4X_ENHANCEMENT   0x00000a00U
+#define BRZ5X_ENHANCEMENT   0x00000b00U
 
-#define COMPRESS_TEX        0x00100000U
 #define FORCE16BPP_TEX      0x20000000U
 #define GZ_TEXCACHE         0x00400000U
 
-#define GR_TEXFMT_ALPHA_8            0x2U
-#define GR_TEXFMT_INTENSITY_8        0x3U
-#define GR_TEXFMT_ALPHA_INTENSITY_44 0x4U
-#define GR_TEXFMT_P_8                0x5U
-#define GR_TEXFMT_RGB_565            0xaU
-#define GR_TEXFMT_ARGB_1555          0xbU
-#define GR_TEXFMT_ARGB_4444          0xcU
-#define GR_TEXFMT_ALPHA_INTENSITY_88 0xdU
-#define GR_TEXFMT_ARGB_CMP_FXT1      0x11U
-#define GR_TEXFMT_ARGB_8888          0x12U
-#define GR_TEXFMT_ARGB_CMP_DXT1      0x16U
-#define GR_TEXFMT_ARGB_CMP_DXT3      0x18U
-#define GR_TEXFMT_ARGB_CMP_DXT5      0x1AU
-#define GR_TEXFMT_GZ                 0x8000U
+#define GR_RGBA8            0x8058
+#define GR_RGB              0x1907
+#define GR_RGBA4            0x8056
+#define GR_RGB5_A1          0x8057
+#define GR_BGRA             0x80E1
+#define GR_TEXFMT_GZ        0x80000000U
 
 struct gliden64_file {
 	void *data;
 	uint64_t checksum;
 	uint32_t width;
 	uint32_t height;
-	uint32_t smallLodLog2;
-	uint32_t largeLodLog2;
-	uint32_t aspectRatioLog2;
-	uint32_t tiles;
-	uint32_t untiled_width;
-	uint32_t untiled_height;
-	uint32_t size;
-	uint16_t format;
+	uint32_t format;
+	uint16_t texture_format;
+	uint16_t pixel_type;
 	uint8_t is_hires_tex;
+	uint32_t size;
 };
 
 enum verbosity_level {
