@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 /* gliden64_cache_extract, GLideN64 TexCache Extraction tool for debugging
  *
- * SPDX-FileCopyrightText: 2013-2015, Sven Eckelmann <sven@narfation.org>
+ * SPDX-FileCopyrightText: Sven Eckelmann <sven@narfation.org>
  */
 
 /**
