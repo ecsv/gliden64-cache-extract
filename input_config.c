@@ -12,8 +12,8 @@
 int parse_config(uint32_t config)
 {
 	uint32_t remaining_bits;
-	const uint32_t highres_bits = HIRESTEXTURES_MASK|TILE_HIRESTEX|FORCE16BPP_HIRESTEX|GZ_HIRESTEXCACHE|LET_TEXARTISTS_FLY;
-	const uint32_t tex_bits = FILTER_MASK|ENHANCEMENT_MASK|FORCE16BPP_TEX|GZ_TEXCACHE;
+	const uint32_t highres_bits = HIRESTEXTURES_MASK|TILE_HIRESTEX|FORCE16BPP_HIRESTEX|GZ_HIRESTEXCACHE|LET_TEXARTISTS_FLY|FILE_CACHE_MASK;
+	const uint32_t tex_bits = FILTER_MASK|ENHANCEMENT_MASK|FORCE16BPP_TEX|GZ_TEXCACHE|FILE_CACHE_MASK;
 	uint32_t testbits;
 
 	switch (globals.type) {
@@ -111,6 +111,16 @@ int parse_config(uint32_t config)
 
 		if ((testbits & GZ_TEXCACHE) == GZ_TEXCACHE)
 			fprintf(stderr, "\ttxCacheCompression: %s\n", (config & GZ_TEXCACHE) ? "True" : "False");
+
+		if ((testbits & FILE_CACHE_MASK) == FILE_CACHE_MASK) {
+			if ((config & FILE_CACHE_MASK) == FILE_TEXCACHE)
+				conf_str = "texstream";
+			else if ((config & FILE_CACHE_MASK) == FILE_HIRESTEXCACHE)
+				conf_str = "hirestexstream";
+			else
+				conf_str = "memory cache";
+			fprintf(stderr, "\tFileCache: %s\n", conf_str);
+		}
 
 		fprintf(stderr, "\n");
 	}

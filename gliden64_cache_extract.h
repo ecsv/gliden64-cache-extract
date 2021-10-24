@@ -155,6 +155,10 @@ static inline uint64_t le64toh(uint64_t little_endian_64bits)
 #define FORCE16BPP_TEX      0x20000000U
 #define GZ_TEXCACHE         0x00400000U
 
+#define FILE_CACHE_MASK     0x00300000U
+#define FILE_TEXCACHE       0x00100000U
+#define FILE_HIRESTEXCACHE  0x00200000U
+
 #define GR_RGBA8            0x8058
 #define GR_RGB              0x1907
 #define GR_RGBA4            0x8056
