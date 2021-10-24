@@ -9,7 +9,7 @@
 
 #if defined(__linux__) || defined(__CYGWIN__)
 
-#define _BSD_SOURCE
+#define _DEFAULT_SOURCE
 #include <endian.h>
 
 #elif defined(__WIN32__)
