@@ -34,6 +34,11 @@ static int convert_input(void)
 		return ret;
 	}
 
+	if (config & FILE_CACHE_MASK) {
+		fprintf(stderr, "TexStream format not supported, please use gliden64-texstream-extract\n");
+		return ret;
+	}
+
 	while (!feof(globals.in)) {
 		ret = convert_file();
 		if (ret < 0)
